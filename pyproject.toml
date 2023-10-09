@@ -1,0 +1,26 @@
+[tool.setuptools]
+packages = ["mci"]
+
+[project]
+name = "mci"
+version = "0.0.1"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+keywords = []
+authors = [{ name = "Morph Labs", email = "support@morph.so" }]
+description = "A neurosymbolic code database for you and your personal AI SWE"
+dependencies = [
+  "tree_sitter",
+  "tree_sitter_languages",
+  "rich",
+  "pytest-asyncio",
+  "numpy",
+  "openai",
+  "tiktoken",
+  "tenacity",
+  "GitPython",
+]
+
+[project.scripts]
+morph = "mci.ir.morph:main"
