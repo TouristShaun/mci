@@ -191,9 +191,7 @@ class Embedding:
         - A float value representing the maximum cosine similarity.
         """
 
-        similarities = [
-            query.node.node_similarity(symbol) for symbol in self.aggregate_symbols
-        ]
+        similarities = [query.node.node_similarity(symbol) for symbol in self.aggregate_symbols]
 
         return max(similarities)
 
@@ -256,9 +254,7 @@ def openai_embedding_sync(document: str) -> Vector:
         print(f"caught {e=} retrying")
 
 
-embed_fun: EmbeddingFunction = EmbeddingFunction(
-    afn=openai_embedding, fn=openai_embedding_sync
-)
+embed_fun: EmbeddingFunction = EmbeddingFunction(afn=openai_embedding, fn=openai_embedding_sync)
 
 
 def set_embedding_function(openai: bool) -> None:
@@ -372,9 +368,7 @@ class Index:
     def get_summary_doc(cls, symbol: IR.Symbol) -> Optional["Index.EmbeddingItem"]:
         """Return a document for a symbol without the body"""
         if isinstance(symbol.symbol_kind, (IR.FunctionKind, IR.ClassKind)):
-            return Index.DocumentItem(
-                symbol, symbol.get_substring_without_body().decode()
-            )
+            return Index.DocumentItem(symbol, symbol.get_substring_without_body().decode())
 
     @classmethod
     def documents_for_symbol(
@@ -401,9 +395,7 @@ class Index:
                 print(
                     f"Symbol '{symbol.get_qualified_id()}' is too long ({len(symbol.get_substring().decode())} chars > {max_tokens} tokens) {symbol.range} "
                 )
-                print(
-                    f"  Added {len(items)} items for {file_path}:{symbol.get_qualified_id()}"
-                )
+                print(f"  Added {len(items)} items for {file_path}:{symbol.get_qualified_id()}")
 
             return items
 
@@ -440,9 +432,7 @@ class Index:
             for symbol in all_symbols:
                 path_with_id = (file_path, symbol.get_qualified_id())
                 if cls.symbol_needs_indexing(symbol, kinds, max_tokens):
-                    items = cls.documents_for_symbol(
-                        file_path, symbol, kinds, max_tokens
-                    )
+                    items = cls.documents_for_symbol(file_path, symbol, kinds, max_tokens)
                     if len(items) > 0:
                         documents_to_embed.extend(
                             [i for i in items if isinstance(i, Index.DocumentItem)]

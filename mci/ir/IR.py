@@ -6,7 +6,7 @@ from typing import Callable, Dict, List, Literal, Optional, Tuple, Union
 import numpy as np
 import numpy.typing as npt
 
-import mci.ir.custom_parsers as custom_parsers
+from . import custom_parsers
 
 Language = Literal[
     "c",
@@ -98,14 +98,7 @@ class Import:
 @dataclass
 class Type:
     kind: Literal[
-        "array",
-        "constructor",
-        "function",
-        "pointer",
-        "record",
-        "reference",
-        "type_of",
-        "unknown",
+        "array", "constructor", "function", "pointer", "record", "reference", "type_of", "unknown"
     ]
     arguments: List["Type"] = field(default_factory=list)
     fields: List["Field"] = field(default_factory=list)
@@ -279,7 +272,7 @@ class BodyKind(MetaSymbolKind):
 @dataclass
 class CallKind(MetaSymbolKind):
     """
-    Represents a function call in the intermediate representation (IR) of the Mci engine.
+    Represents a function call in the intermediate representation (IR) of the Rift engine.
     """
 
     function_name: str
@@ -328,7 +321,7 @@ class DefKind(SymbolKind):
 
 @dataclass
 class ExpressionKind(MetaSymbolKind):
-    """Represents an expression statement in the intermediate representation (IR) of the Mci engine.
+    """Represents an expression statement in the intermediate representation (IR) of the Rift engine.
 
     Attributes:
         code (str): The code string that represents the expression.
@@ -361,7 +354,7 @@ class FileKind(MetaSymbolKind):
 
 @dataclass
 class FunctionKind(SymbolKind):
-    """Represents a function symbol in the intermediate representation (IR) of the Mci engine.
+    """Represents a function symbol in the intermediate representation (IR) of the Rift engine.
 
     Attributes:
         has_return (bool): Whether the function has a return statement in its body.
@@ -659,9 +652,7 @@ def create_file_symbol(code: Code, language: Language, path: str) -> Symbol:
     if code.bytes.endswith(b"\n"):
         last_line -= 1  # Adjust for the last line if it ends with a newline
     last_newline_pos = code.bytes.rfind(b"\n", 0, end_byte - 1)
-    if (
-        last_newline_pos == -1
-    ):  # If there's no newline, the entire content is a single line
+    if last_newline_pos == -1:  # If there's no newline, the entire content is a single line
         last_char_in_line = end_byte
     else:
         last_char_in_line = end_byte - last_newline_pos - 1
@@ -702,9 +693,7 @@ class File:
     _symbol_table: Dict[QualifiedId, Symbol] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        self.symbol = create_file_symbol(
-            code=self.code, language="python", path=self.path
-        )
+        self.symbol = create_file_symbol(code=self.code, language="python", path=self.path)
         self.add_symbol(self.symbol)
 
     def lookup_symbol(self, qid: QualifiedId) -> Optional[Symbol]:
@@ -713,15 +702,9 @@ class File:
     def search_symbol(self, name: Union[str, Callable[[str], bool]]) -> List[Symbol]:
         if callable(name):
             name_filter = name
-            return [
-                symbol
-                for symbol in self._symbol_table.values()
-                if name_filter(symbol.name)
-            ]
+            return [symbol for symbol in self._symbol_table.values() if name_filter(symbol.name)]
         else:
-            return [
-                symbol for symbol in self._symbol_table.values() if symbol.name == name
-            ]
+            return [symbol for symbol in self._symbol_table.values() if symbol.name == name]
 
     def search_module_import(self, module_name: str) -> Optional[Import]:
         for import_ in self._imports:
@@ -789,9 +772,7 @@ class Reference:
     qualified_id: Optional[QualifiedId] = None
 
     def to_uri(self) -> str:
-        return self.file_path + (
-            f"#{self.qualified_id}" if self.qualified_id is not None else ""
-        )
+        return self.file_path + (f"#{self.qualified_id}" if self.qualified_id is not None else "")
 
     @staticmethod
     def from_uri(uri: str) -> "Reference":

@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Tuple
 
 from tree_sitter import Node
 
-from mci.ir.IR import (
+from .IR import (
     Block,
     BodyKind,
     CallKind,
@@ -150,9 +150,7 @@ def get_parameters(language: Language, node: Node) -> List[Parameter]:
             value_node = child.child_by_field_name("value")
 
             default_value = value_node.text.decode() if value_node is not None else None
-            parameters.append(
-                Parameter(name=name, default_value=default_value, type=type)
-            )
+            parameters.append(Parameter(name=name, default_value=default_value, type=type))
         elif child.type == "parameter_declaration":
             if language in ["c", "cpp"]:
                 parameters.append(get_c_cpp_parameter(language, child))
@@ -173,9 +171,7 @@ def get_parameters(language: Language, node: Node) -> List[Parameter]:
             if type_node is not None:
                 type = parse_type(language, type_node)
             parameters.append(
-                Parameter(
-                    name=name, type=type, optional=child.type == "optional_parameter"
-                )
+                Parameter(name=name, type=type, optional=child.type == "optional_parameter")
             )
         elif child.type in ["formal_parameter", "parameter"]:
             type: Optional[Type] = None
@@ -285,9 +281,7 @@ class SymbolParser:
         self.exported = False
         self.has_return = False
 
-    def recurse(
-        self, node: Node, scope: Scope, parent: Optional[Symbol]
-    ) -> "SymbolParser":
+    def recurse(self, node: Node, scope: Scope, parent: Optional[Symbol]) -> "SymbolParser":
         return SymbolParser(
             code=self.code,
             file=self.file,
@@ -357,15 +351,11 @@ class SymbolParser:
         )
         return self.mk_symbol_decl(id=id, parents=parents, symbol_kind=symbol_kind)
 
-    def mk_val_decl(
-        self, id: Node, parents: List[Node], type: Optional[Type] = None
-    ) -> Symbol:
+    def mk_val_decl(self, id: Node, parents: List[Node], type: Optional[Type] = None) -> Symbol:
         symbol_kind = ValueKind(type=type)
         return self.mk_symbol_decl(id=id, parents=parents, symbol_kind=symbol_kind)
 
-    def mk_type_decl(
-        self, id: Node, parents: List[Node], type: Optional[Type] = None
-    ) -> Symbol:
+    def mk_type_decl(self, id: Node, parents: List[Node], type: Optional[Type] = None) -> Symbol:
         symbol_kind = TypeDefinitionKind(type)
         return self.mk_symbol_decl(id=id, parents=parents, symbol_kind=symbol_kind)
 
@@ -450,10 +440,7 @@ class SymbolParser:
             or (node.type in ["namespace_declaration"] and language in ["c_sharp"])
             or (node.type in ["class", "module"] and language == "ruby")
         ):
-            is_namespace = node.type in [
-                "namespace_definition",
-                "namespace_declaration",
-            ]
+            is_namespace = node.type in ["namespace_definition", "namespace_declaration"]
             is_module = node.type == "module"
             superclasses_node = node.child_by_field_name("superclasses")
             superclasses = None
@@ -477,10 +464,7 @@ class SymbolParser:
                     stmt = body_node.children[0]
                     if len(stmt.children) > 0 and stmt.children[0].type == "string":
                         docstring_node = stmt.children[0]
-                        symbol.docstring_sub = (
-                            docstring_node.start_byte,
-                            docstring_node.end_byte,
-                        )
+                        symbol.docstring_sub = (docstring_node.start_byte, docstring_node.end_byte)
                 elif node.prev_sibling is not None and node.prev_sibling.type in [
                     "comment",
                     "line_comment",
@@ -488,35 +472,25 @@ class SymbolParser:
                 ]:
                     # parse class comments before class definition
                     docstring_node = node.prev_sibling
-                    symbol.docstring_sub = (
-                        docstring_node.start_byte,
-                        docstring_node.end_byte,
-                    )
+                    symbol.docstring_sub = (docstring_node.start_byte, docstring_node.end_byte)
 
                 if is_namespace:
                     self.update_dummy_symbol(symbol, NamespaceKind())
                 elif is_module:
                     self.update_dummy_symbol(symbol, ModuleKind())
                 else:
-                    self.update_dummy_symbol(
-                        symbol, ClassKind(superclasses=superclasses)
-                    )
+                    self.update_dummy_symbol(symbol, ClassKind(superclasses=superclasses))
                 self.file.add_symbol(symbol)
                 return [symbol]
 
-        elif (
-            node.type in ["decorated_definition"] and language == "python"
-        ):  # python decorator
+        elif node.type in ["decorated_definition"] and language == "python":  # python decorator
             definition = node.child_by_field_name("definition")
             if definition is not None:
-                return self.recurse(
-                    definition, self.scope, parent=self.parent
-                ).parse_symbols(counter)
+                return self.recurse(definition, self.scope, parent=self.parent).parse_symbols(
+                    counter
+                )
 
-        elif node.type in ["field_declaration", "function_definition"] and language in [
-            "c",
-            "cpp",
-        ]:
+        elif node.type in ["field_declaration", "function_definition"] and language in ["c", "cpp"]:
             type_node = node.child_by_field_name("type")
             type = None
             if type_node is not None:
@@ -573,10 +547,7 @@ class SymbolParser:
                 stmt = body_node.children[0]
                 if len(stmt.children) > 0 and stmt.children[0].type == "string":
                     docstring_node = stmt.children[0]
-                    self.docstring_sub = (
-                        docstring_node.start_byte,
-                        docstring_node.end_byte,
-                    )
+                    self.docstring_sub = (docstring_node.start_byte, docstring_node.end_byte)
             if body_node is not None:
                 self.has_return = contains_direct_return(body_node)
 
@@ -591,18 +562,13 @@ class SymbolParser:
             self.update_dummy_symbol(
                 symbol,
                 FunctionKind(
-                    has_return=self.has_return,
-                    parameters=parameters,
-                    return_type=return_type,
+                    has_return=self.has_return, parameters=parameters, return_type=return_type
                 ),
             )
             self.file.add_symbol(symbol)
             return [symbol]
 
-        elif node.type in [
-            "lexical_declaration",
-            "variable_declaration",
-        ] and language in [
+        elif node.type in ["lexical_declaration", "variable_declaration"] and language in [
             "javascript",
             "typescript",
             "tsx",
@@ -623,20 +589,13 @@ class SymbolParser:
                         self.file.add_symbol(declaration)
                         return [declaration]
 
-        elif node.type == "export_statement" and language in [
-            "js",
-            "typescript",
-            "tsx",
-        ]:
+        elif node.type == "export_statement" and language in ["js", "typescript", "tsx"]:
             if len(node.children) >= 2:
                 self.node = node.children[1]
                 self.exported = True
                 return self.parse_symbols(counter)
 
-        elif node.type in [
-            "interface_declaration",
-            "type_alias_declaration",
-        ] and language in [
+        elif node.type in ["interface_declaration", "type_alias_declaration"] and language in [
             "js",
             "typescript",
             "tsx",
@@ -684,15 +643,10 @@ class SymbolParser:
                     inner_parameter = parse_inner_parameter(parameter.children[0])
                     if inner_parameter is not None:
                         parameters.append(inner_parameter)
-                elif parameter.child_count == 2 and parameter.children[0].type in [
-                    "~",
-                    "?",
-                ]:
+                elif parameter.child_count == 2 and parameter.children[0].type in ["~", "?"]:
                     inner_parameter = parse_inner_parameter(parameter.children[1])
                     if inner_parameter is not None:
-                        inner_parameter.name = (
-                            parameter.children[0].type + inner_parameter.name
-                        )
+                        inner_parameter.name = parameter.children[0].type + inner_parameter.name
                         parameters.append(inner_parameter)
                 elif (
                     parameter.child_count == 4
@@ -702,9 +656,7 @@ class SymbolParser:
                     # "~", par, ":", name
                     inner_parameter = parse_inner_parameter(parameter.children[1])
                     if inner_parameter is not None:
-                        inner_parameter.name = (
-                            parameter.children[0].type + inner_parameter.name
-                        )
+                        inner_parameter.name = parameter.children[0].type + inner_parameter.name
                         parameters.append(inner_parameter)
                 elif (
                     parameter.child_count == 6
@@ -714,9 +666,7 @@ class SymbolParser:
                     # "~", "(", par, ":", typ, ")"
                     inner_parameter = parse_inner_parameter(parameter.children[2])
                     if inner_parameter is not None:
-                        inner_parameter.name = (
-                            parameter.children[0].type + inner_parameter.name
-                        )
+                        inner_parameter.name = parameter.children[0].type + inner_parameter.name
                         type = extract_type(parameter.children[4])
                         inner_parameter.type = type
                         parameters.append(inner_parameter)
@@ -728,9 +678,7 @@ class SymbolParser:
                     # "?", "(", par, "=", val, ")"
                     inner_parameter = parse_inner_parameter(parameter.children[2])
                     if inner_parameter is not None:
-                        inner_parameter.name = (
-                            parameter.children[0].type + inner_parameter.name
-                        )
+                        inner_parameter.name = parameter.children[0].type + inner_parameter.name
                         type = extract_type(parameter.children[4]).type_of()
                         inner_parameter.type = type
                         parameters.append(inner_parameter)
@@ -776,9 +724,7 @@ class SymbolParser:
                         new_scope = self.scope + name.text.decode() + "."
                         symbol = self.mk_dummy_symbol(id=name, parents=[node])
                         if body_node is not None:
-                            self.recurse(
-                                body_node, new_scope, parent=symbol
-                            ).parse_block()
+                            self.recurse(body_node, new_scope, parent=symbol).parse_block()
                         self.update_dummy_symbol(symbol, ModuleKind())
                         self.file.add_symbol(symbol)
                         return [symbol]
@@ -801,25 +747,18 @@ class SymbolParser:
                     default_value = None
                     if nodes[0].type == "labeled_parameter":
                         children = nodes[0].children
-                        default_value_node = nodes[0].child_by_field_name(
-                            "default_value"
-                        )
+                        default_value_node = nodes[0].child_by_field_name("default_value")
                         if default_value_node is not None:
                             next = default_value_node.next_sibling
                             if next is not None:
                                 default_value = next.text.decode()
                         for child in children:
-                            if (
-                                child.type == "type_annotation"
-                                and len(child.children) >= 2
-                            ):
+                            if child.type == "type_annotation" and len(child.children) >= 2:
                                 type = parse_type(language, child.children[1])
                         name = "~" + children[1].text.decode()
                     else:
                         name = nodes[0].text.decode()
-                    parameters.append(
-                        Parameter(default_value=default_value, name=name, type=type)
-                    )
+                    parameters.append(Parameter(default_value=default_value, name=name, type=type))
                 else:
                     logger.warning(f"Unexpected parameter type: {par.type}")
 
@@ -831,17 +770,12 @@ class SymbolParser:
                         if nodes[0].type == "formal_parameters":
                             for par in nodes[0].children:
                                 parse_res_parameter(par, parameters)
-                        if (
-                            nodes[1].type == "type_annotation"
-                            and nodes[1].child_count >= 2
-                        ):
+                        if nodes[1].type == "type_annotation" and nodes[1].child_count >= 2:
                             return_type = parse_type(language, nodes[1].children[1])
                         if self.body_sub is not None:
                             self.body_sub = (nodes[-2].start_byte, self.body_sub[1])
 
-            def parse_res_let_binding(
-                nodes: List[Node], parents: List[Node]
-            ) -> Optional[Symbol]:
+            def parse_res_let_binding(nodes: List[Node], parents: List[Node]) -> Optional[Symbol]:
                 id = None
                 exp = None
                 typ = None
@@ -863,19 +797,13 @@ class SymbolParser:
                     pat = nodes[0].children[1:-1]  # remove ( and )
                     return parse_res_let_binding(pat + nodes[1:], parents)
                 elif (
-                    len(nodes) == 4
-                    and nodes[1].type == "type_annotation"
-                    and nodes[2].type == "="
+                    len(nodes) == 4 and nodes[1].type == "type_annotation" and nodes[2].type == "="
                 ):
                     id = nodes[0]
                     typ = nodes[1]
                     exp = nodes[3]
                     self.body_sub = (nodes[2].start_byte, exp.end_byte)
-                elif (
-                    len(nodes) == 4
-                    and nodes[1].type == "as_aliasing"
-                    and nodes[2].type == "="
-                ):
+                elif len(nodes) == 4 and nodes[1].type == "as_aliasing" and nodes[2].type == "=":
                     id = nodes[1].children[1]
                     exp = nodes[3]
                     self.body_sub = (nodes[2].start_byte, exp.end_byte)
@@ -891,15 +819,10 @@ class SymbolParser:
                         type: Optional[Type] = None
                         if typ is not None and typ.child_count >= 2:
                             type = parse_type(language, typ.children[1])
-                        declaration = self.mk_val_decl(
-                            id=id, parents=parents, type=type
-                        )
+                        declaration = self.mk_val_decl(id=id, parents=parents, type=type)
                     else:
                         declaration = self.mk_fun_decl(
-                            id=id,
-                            parents=parents,
-                            parameters=parameters,
-                            return_type=return_type,
+                            id=id, parents=parents, parameters=parameters, return_type=return_type
                         )
                     self.file.add_symbol(declaration)
                     return declaration
@@ -960,9 +883,7 @@ class SymbolParser:
                     nodes = m1.children
                     return parse_module_binding(nodes)
                 else:
-                    logger.warning(
-                        f"Unexpected node type in module_declaration: {m1.type}"
-                    )
+                    logger.warning(f"Unexpected node type in module_declaration: {m1.type}")
 
         elif node.type == "type_declaration" and language == "rescript":
 
@@ -1000,9 +921,7 @@ class SymbolParser:
                                 fields.append(field)
                     return Type.record(fields)
                 else:
-                    logger.warning(
-                        f"Unexpected node type in type_declaration: {body.type}"
-                    )
+                    logger.warning(f"Unexpected node type in type_declaration: {body.type}")
                     return None
 
             if len(node.children) == 2:
@@ -1020,15 +939,11 @@ class SymbolParser:
                             f"Unexpected node structure in type_binding: {t1.text.decode()}"
                         )
                     if type is not None:
-                        declaration = self.mk_type_decl(
-                            id=node_name, parents=[node], type=type
-                        )
+                        declaration = self.mk_type_decl(id=node_name, parents=[node], type=type)
                         self.file.add_symbol(declaration)
                         return [declaration]
                 else:
-                    logger.warning(
-                        f"Unexpected node type in type_declaration: {t1.type}"
-                    )
+                    logger.warning(f"Unexpected node type in type_declaration: {t1.type}")
                 return []
 
         elif language == "lean":
@@ -1106,9 +1021,7 @@ class SymbolParser:
         """Parse the body of a conditional branch"""
         body_symbol = self.mk_dummy_metasymbol(counter, "body")
         self.recurse(self.node, self.scope, parent=body_symbol).parse_block()
-        self.update_dummy_symbol(
-            symbol=body_symbol, symbol_kind=BodyKind(body_symbol.body)
-        )
+        self.update_dummy_symbol(symbol=body_symbol, symbol_kind=BodyKind(body_symbol.body))
         self.file.add_symbol(body_symbol)
         return body_symbol
 
@@ -1123,12 +1036,8 @@ class SymbolParser:
                 if_symbol = self.mk_dummy_metasymbol(counter, "if")
                 scope = self.scope
 
-                if_guard = self.recurse(guard_n, scope, parent=if_symbol).parse_guard(
-                    counter
-                )
-                if_body = self.recurse(body_n, scope, parent=if_symbol).parse_body(
-                    counter
-                )
+                if_guard = self.recurse(guard_n, scope, parent=if_symbol).parse_guard(counter)
+                if_body = self.recurse(body_n, scope, parent=if_symbol).parse_body(counter)
 
                 if_case = Case(guard=if_guard, body=if_body)
                 alternative_nodes = node.children_by_field_name("alternative")
@@ -1140,49 +1049,35 @@ class SymbolParser:
                         body_n = an.child_by_field_name("consequence")
                         if guard_n is None or body_n is None:
                             continue
-                        guard = self.recurse(
-                            guard_n, scope, parent=if_symbol
-                        ).parse_guard(counter)
-                        body = self.recurse(body_n, scope, parent=if_symbol).parse_body(
-                            counter
-                        )
+                        guard = self.recurse(guard_n, scope, parent=if_symbol).parse_guard(counter)
+                        body = self.recurse(body_n, scope, parent=if_symbol).parse_body(counter)
                         elif_cases.append(Case(guard=guard, body=body))
                     elif an.type == "else_clause":
                         else_n = an.child_by_field_name("body")
                         # TODO: there can be comments in the else clause before the body
                         if else_n is not None:
-                            else_body = self.recurse(
-                                else_n, scope, parent=if_symbol
-                            ).parse_body(counter)
-                if_kind = IfKind(
-                    if_case=if_case, elif_cases=elif_cases, else_body=else_body
-                )
+                            else_body = self.recurse(else_n, scope, parent=if_symbol).parse_body(
+                                counter
+                            )
+                if_kind = IfKind(if_case=if_case, elif_cases=elif_cases, else_body=else_body)
                 self.update_dummy_symbol(symbol=if_symbol, symbol_kind=if_kind)
                 self.file.add_symbol(if_symbol)
                 return if_symbol
 
-        elif (
-            node.type == "expression_statement"
-            and language == "python"
-            and node.child_count == 1
-        ):
+        elif node.type == "expression_statement" and language == "python" and node.child_count == 1:
             child = node.children[0]
             if self.expression_requires_node(child) and self.parent:
                 # Don't need to create a sybmol as parsing the expression will create one
-                _code = self.recurse(
-                    child, self.scope, parent=self.parent
-                ).parse_expression(counter)
+                _code = self.recurse(child, self.scope, parent=self.parent).parse_expression(
+                    counter
+                )
                 # return the last item in the body of the parent
                 return self.parent.body[-1]
 
             else:
                 symbol = self.mk_dummy_metasymbol(counter, "expression")
-                code = self.recurse(child, self.scope, parent=symbol).parse_expression(
-                    counter
-                )
-                self.update_dummy_symbol(
-                    symbol=symbol, symbol_kind=ExpressionKind(code)
-                )
+                code = self.recurse(child, self.scope, parent=symbol).parse_expression(counter)
+                self.update_dummy_symbol(symbol=symbol, symbol_kind=ExpressionKind(code))
                 self.file.add_symbol(symbol)
                 return symbol
 
@@ -1230,9 +1125,7 @@ class SymbolParser:
             if node.type == "call":
                 function_node = node.child_by_field_name("function")
                 if function_node is None:
-                    logger.warning(
-                        f"Unexpected call node structure: {node.text.decode()}"
-                    )
+                    logger.warning(f"Unexpected call node structure: {node.text.decode()}")
                 else:
                     function_name = function_node.text.decode()
 
@@ -1267,9 +1160,7 @@ class SymbolParser:
         self_ = self
         for child in self.node.children:
             self = self_.recurse(child, self_.scope, parent=self_.parent)
-            symbols = self.recurse(
-                self.node, self.scope, parent=self.parent
-            ).parse_symbols(counter)
+            symbols = self.recurse(self.node, self.scope, parent=self.parent).parse_symbols(counter)
             import_ = parse_import(self.node)
             if import_ is not None:
                 self.file.add_import(import_)

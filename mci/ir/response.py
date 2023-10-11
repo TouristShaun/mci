@@ -4,9 +4,7 @@ import textwrap
 from enum import Enum
 from typing import List, Optional, Set, Tuple
 
-import mci.ir.IR as IR
-import mci.ir.parser as parser
-import mci.ir.python_typing as python_typing
+from . import IR, parser, python_typing
 
 logger = logging.getLogger(__name__)
 
@@ -80,9 +78,7 @@ def replace_functions_in_document(
     """
     Replaces functions in the document with corresponding functions from parsed blocks.
     """
-    function_declarations_in_document: List[
-        IR.Symbol
-    ] = ir_doc.get_function_declarations()
+    function_declarations_in_document: List[IR.Symbol] = ir_doc.get_function_declarations()
 
     code_edits: List[IR.CodeEdit] = []
     updated_functions: List[IR.Symbol] = []
@@ -105,9 +101,7 @@ def replace_functions_in_document(
                 new_bytes = function_in_blocks.get_substring()
             elif replace == Replace.DOC:
                 if function_in_blocks.docstring is None:
-                    logger.warning(
-                        f"No docstring for function {function_declaration.name}"
-                    )
+                    logger.warning(f"No docstring for function {function_declaration.name}")
                     continue
                 if function_declaration.docstring_sub is not None:
                     logger.warning(
@@ -128,12 +122,9 @@ def replace_functions_in_document(
                 ):
                     if function_declaration.language == "python":
                         body_start = function_declaration.body_sub[0]
-                        old_indent = find_indent(
-                            function_declaration.code.bytes, body_start
-                        )
+                        old_indent = find_indent(function_declaration.code.bytes, body_start)
                         new_indent = find_indent(
-                            function_in_blocks.code.bytes,
-                            function_in_blocks.body_sub[0],
+                            function_in_blocks.code.bytes, function_in_blocks.body_sub[0]
                         )
                         substring = (body_start - old_indent, body_start - old_indent)
                     else:
@@ -143,9 +134,7 @@ def replace_functions_in_document(
                             function_declaration.code.bytes, old_function_start
                         )
                         new_function_start = function_in_blocks.substring[0]
-                        new_indent = find_indent(
-                            function_in_blocks.code.bytes, new_function_start
-                        )
+                        new_indent = find_indent(function_in_blocks.code.bytes, new_function_start)
                         substring = (
                             old_function_start - old_indent,
                             old_function_start - old_indent,
@@ -154,9 +143,7 @@ def replace_functions_in_document(
                     logger.warning(f"No body for function {function_declaration.name}")
                     continue
 
-                docstring = textwrap.dedent(
-                    " " * new_indent + function_in_blocks.docstring
-                )
+                docstring = textwrap.dedent(" " * new_indent + function_in_blocks.docstring)
                 docstring = textwrap.indent(docstring, " " * old_indent)
                 new_bytes = docstring.encode("utf-8") + b"\n"
             elif replace == Replace.SIGNATURE:
@@ -192,9 +179,7 @@ def update_typing_imports(
     for f in updated_functions:
         if isinstance(f.symbol_kind, IR.FunctionKind):
             fun_kind = f.symbol_kind
-            types_in_function = [
-                p.type for p in fun_kind.parameters if p.type is not None
-            ]
+            types_in_function = [p.type for p in fun_kind.parameters if p.type is not None]
             if fun_kind.return_type is not None:
                 types_in_function.append(fun_kind.return_type)
             names_from_types = get_typing_names_from_types(types_in_function)
@@ -208,9 +193,7 @@ def update_typing_imports(
             import_str += "\n"
         else:
             substring = typing_import.substring
-        code_edit = IR.CodeEdit(
-            substring=substring, new_bytes=import_str.encode("utf-8")
-        )
+        code_edit = IR.CodeEdit(substring=substring, new_bytes=import_str.encode("utf-8"))
         return code_edit
 
 

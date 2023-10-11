@@ -3,9 +3,7 @@ import os
 from textwrap import dedent
 from typing import List
 
-import mci.ir.custom_parsers as custom_parsers
-import mci.ir.IR as IR
-import mci.ir.parser as parser
+from . import IR, custom_parsers, parser
 
 
 class Tests:
@@ -374,9 +372,7 @@ class Tests:
     )
 
 
-def new_file(
-    code: IR.Code, path: str, language: IR.Language, project: IR.Project
-) -> None:
+def new_file(code: IR.Code, path: str, language: IR.Language, project: IR.Project) -> None:
     file = IR.File(code, path)
     parser.parse_code_block(file, code, language, metasymbols=True)
     project.add_file(file)
@@ -427,8 +423,7 @@ def test_parsing():
     symbol_table_str += "\n\n=== Project Map ===\n" + ir_map_str
     if symbol_table_str != old_symbol_table:
         diff = difflib.unified_diff(
-            old_symbol_table.splitlines(keepends=True),
-            symbol_table_str.splitlines(keepends=True),
+            old_symbol_table.splitlines(keepends=True), symbol_table_str.splitlines(keepends=True)
         )
         diff_output = "".join(diff)
 

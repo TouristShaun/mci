@@ -1,10 +1,7 @@
 import difflib
 import os
 
-import mci.ir.completions as completions
-import mci.ir.IR as IR
-import mci.ir.parser as parser
-import mci.ir.test_parser as test_parser
+from . import IR, completions, parser, test_parser
 
 
 def test_completions_file():

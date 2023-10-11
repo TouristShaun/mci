@@ -4,19 +4,17 @@ from typing import Callable, List, Optional
 from tree_sitter import Parser
 from tree_sitter_languages import get_parser as get_tree_sitter_parser
 
-import mci.ir.custom_parsers as custom_parser
-import mci.ir.IR as IR
-import mci.ir.parser_core as parser_core
+from . import IR, custom_parsers, parser_core
 
 
 def get_parser(language: IR.Language) -> Parser:
-    if language == "rescript" and custom_parser.active:
-        parser = custom_parser.parser
-        parser.set_language(custom_parser.ReScript)
+    if language == "rescript" and custom_parsers.active:
+        parser = custom_parsers.parser
+        parser.set_language(custom_parsers.ReScript)
         return parser
-    elif language == "lean" and custom_parser.active:
-        parser = custom_parser.parser
-        parser.set_language(custom_parser.Lean)
+    elif language == "lean" and custom_parsers.active:
+        parser = custom_parsers.parser
+        parser.set_language(custom_parsers.Lean)
         return parser
     else:
         return get_tree_sitter_parser(language)
@@ -53,16 +51,12 @@ def parse_path(
         with open(path, "r", encoding="utf-8") as f:
             code = IR.Code(f.read().encode("utf-8"))
         file_ir = IR.File(code=code, path=path_from_root)
-        parse_code_block(
-            file=file_ir, code=code, language=language, metasymbols=metasymbols
-        )
+        parse_code_block(file=file_ir, code=code, language=language, metasymbols=metasymbols)
         project.add_file(file=file_ir)
 
 
 def parse_files_in_paths(
-    paths: List[str],
-    filter_file: Optional[Callable[[str], bool]] = None,
-    metasymbols: bool = False,
+    paths: List[str], filter_file: Optional[Callable[[str], bool]] = None, metasymbols: bool = False
 ) -> IR.Project:
     """
     Parses all files with known extensions in the provided list of paths.

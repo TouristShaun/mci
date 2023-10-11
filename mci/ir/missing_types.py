@@ -2,8 +2,7 @@ import os
 from dataclasses import dataclass, field
 from typing import List, Tuple
 
-import mci.ir.IR as IR
-import mci.ir.parser as parser
+from . import IR, parser
 
 
 @dataclass
@@ -37,14 +36,7 @@ def functions_missing_types_in_file(file: IR.File) -> List[MissingType]:
     functions_missing_types: List[MissingType] = []
     function_declarations = file.get_function_declarations()
     for d in function_declarations:
-        if d.language not in [
-            "javascript",
-            "ocaml",
-            "python",
-            "rescript",
-            "tsx",
-            "typescript",
-        ]:
+        if d.language not in ["javascript", "ocaml", "python", "rescript", "tsx", "typescript"]:
             continue
         function_kind = d.symbol_kind
         if not isinstance(function_kind, IR.FunctionKind):
@@ -115,7 +107,5 @@ def files_missing_types_in_project(project: IR.Project) -> List[FileMissingTypes
             decl = missing_types[0].function_declaration
             language = decl.language
             code = decl.code
-            files_with_missing_types.append(
-                FileMissingTypes(code, file, language, missing_types)
-            )
+            files_with_missing_types.append(FileMissingTypes(code, file, language, missing_types))
     return files_with_missing_types

@@ -2,11 +2,9 @@ import difflib
 import os
 from textwrap import dedent
 
-import mci.ir.IR as IR
-import mci.ir.parser as parser
-import mci.ir.response as response
-from mci.ir.missing_docstrings import functions_missing_docstrings_in_file
-from mci.ir.missing_types import functions_missing_types_in_file
+from . import IR, parser, response
+from .missing_docstrings import functions_missing_docstrings_in_file
+from .missing_types import functions_missing_types_in_file
 
 
 class Test:
@@ -305,9 +303,7 @@ def test_response():
     file = IR.File(IR.Code(Test.response3.encode()), "response3")
     parser.parse_code_block(file, IR.Code(Test.code3), language)
     missing_types = functions_missing_types_in_file(file)
-    filter_function_ids = [
-        mt.function_declaration.get_qualified_id() for mt in missing_types
-    ]
+    filter_function_ids = [mt.function_declaration.get_qualified_id() for mt in missing_types]
     document3 = IR.Code(Test.code3)
     edits3, updated_functions = response.replace_functions_from_code_blocks(
         code_blocks=code_blocks3,
@@ -330,9 +326,7 @@ def test_response():
     file = IR.File(IR.Code(Test.response4.encode()), "response4")
     parser.parse_code_block(file, IR.Code(Test.code4), language)
     missing_docs = functions_missing_docstrings_in_file(file)
-    filter_function_ids = [
-        md.function_declaration.get_qualified_id() for md in missing_docs
-    ]
+    filter_function_ids = [md.function_declaration.get_qualified_id() for md in missing_docs]
     document4 = IR.Code(Test.code4)
     edits4, updated_functions = response.replace_functions_from_code_blocks(
         code_blocks=code_blocks4,
@@ -349,9 +343,7 @@ def test_response():
     file = IR.File(IR.Code(Test.response5.encode()), "response5")
     parser.parse_code_block(file, IR.Code(Test.code5), language)
     missing_docs = functions_missing_docstrings_in_file(file)
-    filter_function_ids = [
-        md.function_declaration.get_qualified_id() for md in missing_docs
-    ]
+    filter_function_ids = [md.function_declaration.get_qualified_id() for md in missing_docs]
     document5 = IR.Code(Test.code5)
     edits5, updated_functions = response.replace_functions_from_code_blocks(
         code_blocks=code_blocks5,
@@ -365,8 +357,7 @@ def test_response():
 
     if new_test_output != old_test_output:
         diff = difflib.unified_diff(
-            old_test_output.splitlines(keepends=True),
-            new_test_output.splitlines(keepends=True),
+            old_test_output.splitlines(keepends=True), new_test_output.splitlines(keepends=True)
         )
         diff_output = "".join(diff)
 

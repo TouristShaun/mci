@@ -1,0 +1,9 @@
+tree_sitter
+tree_sitter_languages
+rich
+pytest-asyncio
+numpy
+openai
+tiktoken
+tenacity
+GitPython
