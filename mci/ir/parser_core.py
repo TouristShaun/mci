@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Tuple
 
 from tree_sitter import Node
 
-from mci.ir.IR import (
+from .IR import (
     Block,
     BodyKind,
     CallKind,
@@ -440,10 +440,7 @@ class SymbolParser:
             or (node.type in ["namespace_declaration"] and language in ["c_sharp"])
             or (node.type in ["class", "module"] and language == "ruby")
         ):
-            is_namespace = node.type in [
-                "namespace_definition",
-                "namespace_declaration",
-            ]
+            is_namespace = node.type in ["namespace_definition", "namespace_declaration"]
             is_module = node.type == "module"
             superclasses_node = node.child_by_field_name("superclasses")
             superclasses = None
@@ -467,10 +464,7 @@ class SymbolParser:
                     stmt = body_node.children[0]
                     if len(stmt.children) > 0 and stmt.children[0].type == "string":
                         docstring_node = stmt.children[0]
-                        symbol.docstring_sub = (
-                            docstring_node.start_byte,
-                            docstring_node.end_byte,
-                        )
+                        symbol.docstring_sub = (docstring_node.start_byte, docstring_node.end_byte)
                 elif node.prev_sibling is not None and node.prev_sibling.type in [
                     "comment",
                     "line_comment",
@@ -478,10 +472,7 @@ class SymbolParser:
                 ]:
                     # parse class comments before class definition
                     docstring_node = node.prev_sibling
-                    symbol.docstring_sub = (
-                        docstring_node.start_byte,
-                        docstring_node.end_byte,
-                    )
+                    symbol.docstring_sub = (docstring_node.start_byte, docstring_node.end_byte)
 
                 if is_namespace:
                     self.update_dummy_symbol(symbol, NamespaceKind())
@@ -499,10 +490,7 @@ class SymbolParser:
                     counter
                 )
 
-        elif node.type in ["field_declaration", "function_definition"] and language in [
-            "c",
-            "cpp",
-        ]:
+        elif node.type in ["field_declaration", "function_definition"] and language in ["c", "cpp"]:
             type_node = node.child_by_field_name("type")
             type = None
             if type_node is not None:
@@ -559,10 +547,7 @@ class SymbolParser:
                 stmt = body_node.children[0]
                 if len(stmt.children) > 0 and stmt.children[0].type == "string":
                     docstring_node = stmt.children[0]
-                    self.docstring_sub = (
-                        docstring_node.start_byte,
-                        docstring_node.end_byte,
-                    )
+                    self.docstring_sub = (docstring_node.start_byte, docstring_node.end_byte)
             if body_node is not None:
                 self.has_return = contains_direct_return(body_node)
 
@@ -577,18 +562,13 @@ class SymbolParser:
             self.update_dummy_symbol(
                 symbol,
                 FunctionKind(
-                    has_return=self.has_return,
-                    parameters=parameters,
-                    return_type=return_type,
+                    has_return=self.has_return, parameters=parameters, return_type=return_type
                 ),
             )
             self.file.add_symbol(symbol)
             return [symbol]
 
-        elif node.type in [
-            "lexical_declaration",
-            "variable_declaration",
-        ] and language in [
+        elif node.type in ["lexical_declaration", "variable_declaration"] and language in [
             "javascript",
             "typescript",
             "tsx",
@@ -609,20 +589,13 @@ class SymbolParser:
                         self.file.add_symbol(declaration)
                         return [declaration]
 
-        elif node.type == "export_statement" and language in [
-            "js",
-            "typescript",
-            "tsx",
-        ]:
+        elif node.type == "export_statement" and language in ["js", "typescript", "tsx"]:
             if len(node.children) >= 2:
                 self.node = node.children[1]
                 self.exported = True
                 return self.parse_symbols(counter)
 
-        elif node.type in [
-            "interface_declaration",
-            "type_alias_declaration",
-        ] and language in [
+        elif node.type in ["interface_declaration", "type_alias_declaration"] and language in [
             "js",
             "typescript",
             "tsx",
@@ -670,10 +643,7 @@ class SymbolParser:
                     inner_parameter = parse_inner_parameter(parameter.children[0])
                     if inner_parameter is not None:
                         parameters.append(inner_parameter)
-                elif parameter.child_count == 2 and parameter.children[0].type in [
-                    "~",
-                    "?",
-                ]:
+                elif parameter.child_count == 2 and parameter.children[0].type in ["~", "?"]:
                     inner_parameter = parse_inner_parameter(parameter.children[1])
                     if inner_parameter is not None:
                         inner_parameter.name = parameter.children[0].type + inner_parameter.name
@@ -852,10 +822,7 @@ class SymbolParser:
                         declaration = self.mk_val_decl(id=id, parents=parents, type=type)
                     else:
                         declaration = self.mk_fun_decl(
-                            id=id,
-                            parents=parents,
-                            parameters=parameters,
-                            return_type=return_type,
+                            id=id, parents=parents, parameters=parameters, return_type=return_type
                         )
                     self.file.add_symbol(declaration)
                     return declaration

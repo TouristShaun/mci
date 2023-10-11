@@ -6,7 +6,7 @@ from typing import Callable, Dict, List, Literal, Optional, Tuple, Union
 import numpy as np
 import numpy.typing as npt
 
-import mci.ir.custom_parsers as custom_parsers
+from . import custom_parsers
 
 Language = Literal[
     "c",
@@ -98,14 +98,7 @@ class Import:
 @dataclass
 class Type:
     kind: Literal[
-        "array",
-        "constructor",
-        "function",
-        "pointer",
-        "record",
-        "reference",
-        "type_of",
-        "unknown",
+        "array", "constructor", "function", "pointer", "record", "reference", "type_of", "unknown"
     ]
     arguments: List["Type"] = field(default_factory=list)
     fields: List["Field"] = field(default_factory=list)
@@ -279,7 +272,7 @@ class BodyKind(MetaSymbolKind):
 @dataclass
 class CallKind(MetaSymbolKind):
     """
-    Represents a function call in the intermediate representation (IR) of the Mci engine.
+    Represents a function call in the intermediate representation (IR) of the Rift engine.
     """
 
     function_name: str
@@ -328,7 +321,7 @@ class DefKind(SymbolKind):
 
 @dataclass
 class ExpressionKind(MetaSymbolKind):
-    """Represents an expression statement in the intermediate representation (IR) of the Mci engine.
+    """Represents an expression statement in the intermediate representation (IR) of the Rift engine.
 
     Attributes:
         code (str): The code string that represents the expression.
@@ -361,7 +354,7 @@ class FileKind(MetaSymbolKind):
 
 @dataclass
 class FunctionKind(SymbolKind):
-    """Represents a function symbol in the intermediate representation (IR) of the Mci engine.
+    """Represents a function symbol in the intermediate representation (IR) of the Rift engine.
 
     Attributes:
         has_return (bool): Whether the function has a return statement in its body.

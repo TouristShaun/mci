@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 
-import mci.ir.IR as IR
+from . import IR
 
 
 @dataclass
@@ -19,9 +19,7 @@ class FunctionMissingDocstring:
         return 1
 
 
-def functions_missing_docstrings_in_file(
-    file_name: IR.File,
-) -> List[FunctionMissingDocstring]:
+def functions_missing_docstrings_in_file(file_name: IR.File) -> List[FunctionMissingDocstring]:
     """Find function declarations that are missing doc strings."""
     functions_missing_docstrings: List[FunctionMissingDocstring] = []
     function_declarations = file_name.get_function_declarations()
@@ -48,9 +46,7 @@ class FileMissingDocstrings:
     functions_missing_docstrings: List[FunctionMissingDocstring]
 
 
-def files_missing_docstrings_in_project(
-    project: IR.Project,
-) -> List[FileMissingDocstrings]:
+def files_missing_docstrings_in_project(project: IR.Project) -> List[FileMissingDocstrings]:
     """Return a list of files with missing doc strings and the functions missing doc strings in each file."""
     files_with_missing_docstrings: List[FileMissingDocstrings] = []
     for file_name in project.get_files():

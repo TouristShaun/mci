@@ -2,11 +2,9 @@ import difflib
 import os
 from textwrap import dedent
 
-import mci.ir.IR as IR
-import mci.ir.parser as parser
-import mci.ir.response as response
-from mci.ir.missing_docstrings import functions_missing_docstrings_in_file
-from mci.ir.missing_types import functions_missing_types_in_file
+from . import IR, parser, response
+from .missing_docstrings import functions_missing_docstrings_in_file
+from .missing_types import functions_missing_types_in_file
 
 
 class Test:
@@ -359,8 +357,7 @@ def test_response():
 
     if new_test_output != old_test_output:
         diff = difflib.unified_diff(
-            old_test_output.splitlines(keepends=True),
-            new_test_output.splitlines(keepends=True),
+            old_test_output.splitlines(keepends=True), new_test_output.splitlines(keepends=True)
         )
         diff_output = "".join(diff)
 

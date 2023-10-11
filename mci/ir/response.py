@@ -4,9 +4,7 @@ import textwrap
 from enum import Enum
 from typing import List, Optional, Set, Tuple
 
-import mci.ir.IR as IR
-import mci.ir.parser as parser
-import mci.ir.python_typing as python_typing
+from . import IR, parser, python_typing
 
 logger = logging.getLogger(__name__)
 
@@ -126,8 +124,7 @@ def replace_functions_in_document(
                         body_start = function_declaration.body_sub[0]
                         old_indent = find_indent(function_declaration.code.bytes, body_start)
                         new_indent = find_indent(
-                            function_in_blocks.code.bytes,
-                            function_in_blocks.body_sub[0],
+                            function_in_blocks.code.bytes, function_in_blocks.body_sub[0]
                         )
                         substring = (body_start - old_indent, body_start - old_indent)
                     else:
