@@ -10,7 +10,7 @@ from rich.console import Console
 from rich.markdown import Markdown
 
 import mci.ir.IR as IR
-from mci.ir.index import Index, PathWithId, Query, Text
+from mci.index.index import Index, PathWithId, Query, Text
 from mci.ir.parser import parse_files_in_paths
 
 repo_root = git.Repo(".", search_parent_directories=True).git.rev_parse("--show-toplevel")

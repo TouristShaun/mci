@@ -1,2 +1,2 @@
 [console_scripts]
-morph = mci.ir.morph:main
+morph = mci.index.morph:main
