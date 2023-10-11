@@ -8,12 +8,12 @@ import os
 import pickle
 import time
 from abc import ABC, abstractmethod
-from concurrent import futures
 from dataclasses import dataclass
 from typing import Awaitable, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import openai
+import pytest
 import tiktoken
 from tenacity import retry, wait_exponential
 
@@ -67,7 +67,9 @@ class Text(Node):
 
     def __init__(self, text: str) -> None:
         self.text = text
-        self.vector = embed_fun.sync(text)
+        vector = embed_fun.sync(text)
+        if vector is not None:
+            self.vector = vector
 
     def node_similarity(self, symbol: IR.Symbol) -> float:
         if symbol.embedding is None:
@@ -201,22 +203,18 @@ PathWithId = Tuple[str, IR.QualifiedId]
 
 @dataclass
 class EmbeddingFunction:
-    afn: Callable[str, Awaitable[Vector]]
-    fn: [str, Vector]
+    afn: Callable[[str], Awaitable[Optional[Vector]]]
+    fn: Callable[[str], Optional[Vector]]
 
-    async def __call__(self, input: str) -> Awaitable[Vector]:
+    async def __call__(self, input: str) -> Optional[Vector]:
         return await self.afn(input)
 
-    def sync(self, input: str) -> Vector:
+    def sync(self, input: str) -> Optional[Vector]:
         return self.fn(input)
-
-    @staticmethod
-    def create(afn, fn) -> "EmbeddingFunction":
-        return EmbeddingFunction(afn=afn, fn=fn)
 
 
 @retry(wait=wait_exponential(multiplier=1, min=4, max=10))
-async def openai_embedding(document: str) -> Awaitable[Vector]:
+async def openai_embedding(document: str) -> Optional[Vector]:
     try:
         async with GLOBAL_SEMAPHORE:
             print("openai embedding for", document[:20], "...")
@@ -228,7 +226,9 @@ async def openai_embedding(document: str) -> Awaitable[Vector]:
                     : MAX_TOKENS - 1
                 ]  # less than max tokens otherwise the embedding is full of nan
                 document = Encoder.decode(tokens)
-            vector = (await openai.Embedding.acreate(input=[document], model=model))["data"][0]["embedding"]  # type: ignore
+            acreate = openai.Embedding.acreate  # type: ignore
+            vector = acreate(input=[document], model=model)  # type: ignore
+            vector = (await vector)["data"][0]["embedding"]  # type: ignore
             vector: Vector = np.array(vector)  # type: ignore
             return vector
     except Exception as e:
@@ -236,7 +236,7 @@ async def openai_embedding(document: str) -> Awaitable[Vector]:
 
 
 @retry(wait=wait_exponential(multiplier=1, min=4, max=10))
-def openai_embedding_sync(document: str) -> Vector:
+def openai_embedding_sync(document: str) -> Optional[Vector]:
     try:
         print("[async] openai embedding for", document[:20], "...")
         model = "text-embedding-ada-002"
@@ -247,7 +247,9 @@ def openai_embedding_sync(document: str) -> Vector:
                 : MAX_TOKENS - 1
             ]  # less than max tokens otherwise the embedding is full of nan
             document = Encoder.decode(tokens)
-        vector = (openai.Embedding.create(input=[document], model=model))["data"][0]["embedding"]  # type: ignore
+        create = openai.Embedding.create  # type: ignore
+        vector = create(input=[document], model=model)  # type: ignore
+        vector = vector["data"][0]["embedding"]  # type: ignore
         vector: Vector = np.array(vector)  # type: ignore
         return vector
     except Exception as e:
@@ -447,11 +449,11 @@ class Index:
 
         async def async_get_embedding(
             document_to_embed: Index.DocumentItem,
-        ) -> Awaitable[Vector]:
+        ) -> Optional[Vector]:
             return await embed_fun(document_to_embed.document)
 
         # Parallel server requests
-        embedded_results: List[Awaitable[Vector]] = await asyncio.gather(
+        embedded_results: List[Vector] = await asyncio.gather(
             *(async_get_embedding(x) for x in documents_to_embed)
         )
 
@@ -467,9 +469,6 @@ class Index:
             for symbol_embedding in symbol_embeddings
         }
         return cls(embeddings=embeddings, project=project)
-
-
-import pytest
 
 
 @pytest.mark.asyncio
@@ -508,7 +507,7 @@ async def test_index() -> None:
         node: Node, kinds: List[SymbolKindName] = ["Function"], num_results: int = 5
     ) -> None:
         start = time.time()
-        query = Query(node, num_results=num_results, kinds=kinds)  #  ["Class", "File"]
+        query = Query(node, num_results=num_results, kinds=kinds)  # ["Class", "File"]
         scores: List[Tuple[PathWithId, float, IR.Symbol]] = index.search(query)
         print("\nSemantic Search Results:")
         # Determine the maximum width for each column
