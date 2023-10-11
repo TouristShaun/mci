@@ -5,9 +5,7 @@ from tree_sitter import Language, Parser
 
 from mci.util.fs import MCI_PROJECT_DIR
 
-TREE_SITTER_LANGUAGES_PATH = os.path.join(
-    MCI_PROJECT_DIR, "build", "tree-sitter-languages.so"
-)
+TREE_SITTER_LANGUAGES_PATH = os.path.join(MCI_PROJECT_DIR, "build", "tree-sitter-languages.so")
 VENDOR_PATH = os.path.join(MCI_PROJECT_DIR, "vendor")
 
 active = False

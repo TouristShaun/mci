@@ -4,29 +4,27 @@ import os
 import time
 from typing import List, Optional
 
-from mci.ir.index import Index, Query, Text, PathWithId
-import mci.ir.IR as IR
-from mci.ir.parser import parse_files_in_paths
+import git
 import rich
-
 from rich.console import Console
 from rich.markdown import Markdown
 
-import git
+import mci.ir.IR as IR
+from mci.ir.index import Index, PathWithId, Query, Text
+from mci.ir.parser import parse_files_in_paths
 
-repo_root = git.Repo(".", search_parent_directories=True).git.rev_parse(
-    "--show-toplevel"
-)
+repo_root = git.Repo(".", search_parent_directories=True).git.rev_parse("--show-toplevel")
 morph_dir = os.path.join(repo_root, ".morph")
 os.makedirs(morph_dir, exist_ok=True)
 index_file = os.path.join(morph_dir, "index.rci")
 
 from dataclasses import dataclass
 
+
 @dataclass
 class MorphSearchResult:
     root_path: str
-    path_with_id: PathWithId # Tuple[str, QualifiedId]
+    path_with_id: PathWithId  # Tuple[str, QualifiedId]
     score: float
     symbol: IR.Symbol
     language: Optional[str] = None
@@ -75,9 +73,19 @@ Displaying top **{TOP_N}** out of **{total_symbols}** code objects for:
     start = time.time()
 
     search_results = index.search(query)
-    search_results = [MorphSearchResult(root_path=index.project.root_path, path_with_id=search_result[0], score=search_result[1], symbol=search_result[2]) for search_result in search_results]
-    search_results_md = Markdown("\n---\n".join(search_result.format_md() for search_result in search_results))
-    console.print(search_results_md)    
+    search_results = [
+        MorphSearchResult(
+            root_path=index.project.root_path,
+            path_with_id=search_result[0],
+            score=search_result[1],
+            symbol=search_result[2],
+        )
+        for search_result in search_results
+    ]
+    search_results_md = Markdown(
+        "\n---\n".join(search_result.format_md() for search_result in search_results)
+    )
+    console.print(search_results_md)
     elapsed = time.time() - start
     print(f"\nSearched in {elapsed:.2f} seconds")
 
@@ -110,9 +118,7 @@ def main():
     )
 
     # Add the arguments
-    parser.add_argument(
-        "command", choices=["search", "index"], help="the command to execute"
-    )
+    parser.add_argument("command", choices=["search", "index"], help="the command to execute")
     parser.add_argument(
         "arguments",
         metavar="N",

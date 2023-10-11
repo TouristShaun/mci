@@ -60,8 +60,6 @@ def files_missing_docstrings_in_project(
             language = file_decl.language
             file_code = file_decl.code
             files_with_missing_docstrings.append(
-                FileMissingDocstrings(
-                    file_code, file_name, language, functions_missing_docstrings
-                )
+                FileMissingDocstrings(file_code, file_name, language, functions_missing_docstrings)
             )
     return files_with_missing_docstrings

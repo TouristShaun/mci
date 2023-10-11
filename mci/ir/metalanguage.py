@@ -83,9 +83,7 @@ class MetaLanguage:
                     x, (IR.Field, IR.FunctionKind, IR.Parameter, IR.TypeDefinitionKind)
                 ):
                     if not b:
-                        self.report_check_failed(
-                            f"Check failed on: {x} in {self.get_file_path(x)}"
-                        )
+                        self.report_check_failed(f"Check failed on: {x} in {self.get_file_path(x)}")
                 else:
                     raise Exception(f"Unknown type: {type(x)}")
 

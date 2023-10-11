@@ -374,9 +374,7 @@ class Tests:
     )
 
 
-def new_file(
-    code: IR.Code, path: str, language: IR.Language, project: IR.Project
-) -> None:
+def new_file(code: IR.Code, path: str, language: IR.Language, project: IR.Project) -> None:
     file = IR.File(code, path)
     parser.parse_code_block(file, code, language, metasymbols=True)
     project.add_file(file)

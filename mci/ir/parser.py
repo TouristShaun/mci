@@ -53,9 +53,7 @@ def parse_path(
         with open(path, "r", encoding="utf-8") as f:
             code = IR.Code(f.read().encode("utf-8"))
         file_ir = IR.File(code=code, path=path_from_root)
-        parse_code_block(
-            file=file_ir, code=code, language=language, metasymbols=metasymbols
-        )
+        parse_code_block(file=file_ir, code=code, language=language, metasymbols=metasymbols)
         project.add_file(file=file_ir)
 
 
