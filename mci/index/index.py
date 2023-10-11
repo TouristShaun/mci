@@ -1,7 +1,3 @@
-# for tests:
-# pip install spacy
-# python -m spacy download en_core_web_md
-
 import asyncio
 import math
 import os
@@ -261,22 +257,7 @@ embed_fun: EmbeddingFunction = EmbeddingFunction(afn=openai_embedding, fn=openai
 
 def set_embedding_function(openai: bool) -> None:
     global embed_fun
-    if openai:
-        embed_fun = EmbeddingFunction(afn=openai_embedding, fn=openai_embedding_sync)
-    else:
-        import spacy
-
-        nlp = spacy.load("en_core_web_md")
-
-        async def spacy_embedding(document: str) -> Vector:
-            print("spacy embedding for", document[:20], "...")
-            return np.array(nlp(document).vector)
-
-        def spacy_embedding_sync(document: str) -> Vector:
-            print("spacy embedding for", document[:20], "...")
-            return np.array(nlp(document).vector)
-
-        embed_fun = EmbeddingFunction(afn=spacy_embedding, fn=spacy_embedding_sync)
+    embed_fun = EmbeddingFunction(afn=openai_embedding, fn=openai_embedding_sync)
 
 
 @dataclass
