@@ -5,7 +5,7 @@ import pickle
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Awaitable, Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import openai
@@ -63,7 +63,7 @@ class Text(Node):
 
     def __init__(self, text: str) -> None:
         self.text = text
-        vector = embed_fun.sync(text)
+        vector = openai_embedding_sync(text)
         if vector is not None:
             self.vector = vector
 
@@ -197,18 +197,6 @@ class Embedding:
 PathWithId = Tuple[str, IR.QualifiedId]
 
 
-@dataclass
-class EmbeddingFunction:
-    afn: Callable[[str], Awaitable[Optional[Vector]]]
-    fn: Callable[[str], Optional[Vector]]
-
-    async def __call__(self, input: str) -> Optional[Vector]:
-        return await self.afn(input)
-
-    def sync(self, input: str) -> Optional[Vector]:
-        return self.fn(input)
-
-
 @retry(wait=wait_exponential(multiplier=1, min=4, max=10))
 async def openai_embedding(document: str) -> Optional[Vector]:
     try:
@@ -250,14 +238,6 @@ def openai_embedding_sync(document: str) -> Optional[Vector]:
         return vector
     except Exception as e:
         print(f"caught {e=} retrying")
-
-
-embed_fun: EmbeddingFunction = EmbeddingFunction(afn=openai_embedding, fn=openai_embedding_sync)
-
-
-def set_embedding_function(openai: bool) -> None:
-    global embed_fun
-    embed_fun = EmbeddingFunction(afn=openai_embedding, fn=openai_embedding_sync)
 
 
 @dataclass
@@ -431,7 +411,7 @@ class Index:
         async def async_get_embedding(
             document_to_embed: Index.DocumentItem,
         ) -> Optional[Vector]:
-            return await embed_fun(document_to_embed.document)
+            return await openai_embedding(document_to_embed.document)
 
         # Parallel server requests
         embedded_results: List[Vector] = await asyncio.gather(
@@ -462,10 +442,7 @@ async def test_index() -> None:
     #     os.path.dirname(os.path.dirname(this_dir))
     # )  # the whole mci project
 
-    openai = True
-
     index_file = os.path.join(this_dir, "index.mci")
-    set_embedding_function(openai=openai)
     if os.path.exists(index_file):
         start = time.time()
         print(f"Loading index from file... {index_file}")
